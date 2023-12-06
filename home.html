@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa Hats 4 Everyone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="upload-area" id="base-upload-area">
+        <input type="file" id="base-image-input" accept="image/*" hidden>
+        <button onclick="document.getElementById('base-image-input').click()">Upload Image</button>
+    </div>
+
+    <div id="base-image-display">
+        <!-- The base image will be inserted here -->
+    </div>
+
+    <div class="overlay-buttons" id="overlay-buttons" style="display:none;">
+        <button id="overlay1-btn" onclick="setOverlay('/Users/sofiaalejandro/Desktop/santa/overlay1.png')">Realistic</button>
+        <button id="overlay2-btn" onclick="setOverlay('/Users/sofiaalejandro/Desktop/santa/overlay2.jpeg')">Cartoon</button>
+        <input type="range" id="resize-slider" min="0.5" max="2" step="0.1" value="1" style="display:none;" onchange="resizeOverlay()">
+    </div>
+
+    <button id="download-btn" style="display:none;" onclick="downloadImage()">Download Image</button>
+</div>
+
+<script>
+    let baseImage, overlayImage;
+
+    document.getElementById('base-image-input').addEventListener('change', function(event) {
+        if (event.target.files && event.target.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    let ratio = Math.min(600 / img.width, 600 / img.height);
+                    img.width = img.width * ratio;
+                    img.height = img.height * ratio;
+
+                    let displayArea = document.getElementById('base-image-display');
+                    displayArea.innerHTML = '';
+                    displayArea.appendChild(img);
+
+                    document.getElementById('overlay-buttons').style.display = 'block';
+                    document.getElementById('download-btn').style.display = 'inline-block';
+                };
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    });
+
+    function setOverlay(overlaySrc) {
+        overlayImage = new Image();
+        overlayImage.src = overlaySrc;
+        overlayImage.id = "overlay-image";
+        overlayImage.onload = function() {
+            let existingOverlay = document.getElementById('overlay-image');
+            if (existingOverlay) {
+                document.getElementById('base-image-display').removeChild(existingOverlay);
+            }
+            document.getElementById('base-image-display').appendChild(overlayImage);
+            overlayImage.style.display = 'block';
+            initDragElement(overlayImage);
+            document.getElementById('resize-slider').style.display = 'inline-block';
+        };
+    }
+
+    function initDragElement(element) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        element.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+
+            let newTop = element.offsetTop - pos2;
+            let newLeft = element.offsetLeft - pos1;
+
+            element.style.top = newTop + "px";
+            element.style.left = newLeft + "px";
+        }
+
+        function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+
+    function resizeOverlay() {
+        let sliderValue = document.getElementById('resize-slider').value;
+        overlayImage.style.transform = `scale(${sliderValue})`;
+    }
+
+    function downloadImage() {
+        if (baseImage && overlayImage) {
+            console.log("broken for now.... will fix......");
+        } else {
+            alert("ur soooooooo dumb.");
+        }
+    }
+</script>
+
+</body>
+</html>
