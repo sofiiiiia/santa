@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Santa Hats 4 Everyone</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -15,20 +15,22 @@
     </div>
 
     <div id="base-image-display">
-        <!-- The base image will be inserted here -->
+        <!-- base image will be inserted here -->
     </div>
 
     <div class="overlay-buttons" id="overlay-buttons" style="display:none;">
-        <button id="overlay1-btn" onclick="setOverlay('/Users/sofiaalejandro/Desktop/santa/overlay1.png')">Realistic</button>
-        <button id="overlay2-btn" onclick="setOverlay('/Users/sofiaalejandro/Desktop/santa/overlay2.jpeg')">Cartoon</button>
+        <button id="overlay1-btn" onclick="setOverlay('/overlay1.png')">realistic</button>
+        <button id="overlay2-btn" onclick="setOverlay('/overlay2.png')">cartoon</button>
         <input type="range" id="resize-slider" min="0.5" max="2" step="0.1" value="1" style="display:none;" onchange="resizeOverlay()">
     </div>
 
     <button id="download-btn" style="display:none;" onclick="downloadImage()">Download Image</button>
 </div>
 
+<canvas id="canvas" style="display:none;"></canvas>
+
 <script>
-    let baseImage, overlayImage;
+    let baseImage, overlayImage, offsetX = 0, offsetY = 0;
 
     document.getElementById('base-image-input').addEventListener('change', function(event) {
         if (event.target.files && event.target.files[0]) {
@@ -45,6 +47,8 @@
                     displayArea.innerHTML = '';
                     displayArea.appendChild(img);
 
+                    baseImage = img; // Set the base image
+
                     document.getElementById('overlay-buttons').style.display = 'block';
                     document.getElementById('download-btn').style.display = 'inline-block';
                 };
@@ -52,6 +56,23 @@
             reader.readAsDataURL(event.target.files[0]);
         }
     });
+
+    function setOverlay(overlaySrc) {
+        overlayImage = new Image();
+        overlayImage.src = overlaySrc;
+        overlayImage.id = "overlay-image";
+        overlayImage.onload = function() {
+            let existingOverlay = document.getElementById('overlay-image');
+            if (existingOverlay) {
+                document.getElementById('base-image-display').removeChild(existingOverlay);
+            }
+            document.getElementById('base-image-display').appendChild(overlayImage);
+            overlayImage.style.display = 'block';
+            initDragElement(overlayImage);
+            document.getElementById('resize-slider').style.display = 'inline-block';
+        };
+    }
+
 
     function setOverlay(overlaySrc) {
         overlayImage = new Image();
@@ -88,29 +109,57 @@
             pos3 = e.clientX;
             pos4 = e.clientY;
 
-            let newTop = element.offsetTop - pos2;
-            let newLeft = element.offsetLeft - pos1;
-
-            element.style.top = newTop + "px";
-            element.style.left = newLeft + "px";
+            element.style.top = (element.offsetTop - pos2) + "px";
+            element.style.left = (element.offsetLeft - pos1) + "px";
         }
 
         function closeDragElement() {
+            // Capture the final position when the mouse button is released
+            offsetX = parseInt(element.style.left, 10);
+            offsetY = parseInt(element.style.top, 10);
             document.onmouseup = null;
             document.onmousemove = null;
         }
     }
 
     function resizeOverlay() {
-        let sliderValue = document.getElementById('resize-slider').value;
-        overlayImage.style.transform = `scale(${sliderValue})`;
+    let sliderValue = document.getElementById('resize-slider').value;
+    if (overlayImage) {
+        // set the transform scale based on the slider's value
+        overlayImage.style.transform = 'scale(' + sliderValue + ')';
+        // ensures that the transform origin is in the center.
+        overlayImage.style.transformOrigin = 'center';
     }
+}
 
     function downloadImage() {
         if (baseImage && overlayImage) {
-            console.log("broken for now.... will fix......");
+            let canvas = document.getElementById('canvas');
+            let ctx = canvas.getContext('2d');
+            canvas.width = baseImage.width;
+            canvas.height = baseImage.height;
+            ctx.drawImage(baseImage, 0, 0, baseImage.width, baseImage.height);
+
+            // Use the offset values captured during drag to set the position. DO NOT AMEND otherwise downloadable images will come out slightly off
+            ctx.drawImage(overlayImage, offsetX, offsetY, overlayImage.width, overlayImage.height);
+
+            let dataURL = canvas.toDataURL('image/png');
+            fetch('/saveimage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: dataURL })
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
         } else {
-            alert("ur soooooooo dumb.");
+            alert("please try again later.");
         }
     }
 </script>
