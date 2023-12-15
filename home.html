@@ -21,7 +21,7 @@
     <div class="overlay-buttons" id="overlay-buttons" style="display:none;">
         <button id="overlay1-btn" onclick="setOverlay('/overlay1.png')">realistic</button>
         <button id="overlay2-btn" onclick="setOverlay('/overlay2.png')">cartoon</button>
-        <input type="range" id="resize-slider" min="0.5" max="2" step="0.1" value="1" style="display:none;" onchange="resizeOverlay()">
+        <input type="range" id="resize-slider" min="0.5" max="2" step="0.1" value="1" style="display:none;" oninput="resizeOverlay()">
     </div>
 
     <button id="download-btn" style="display:none;" onclick="downloadImage()">Download Image</button>
@@ -132,6 +132,16 @@
     }
 }
 
+    function downloadURI(uri, name) {
+        var link = document.createElement("a");
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        delete link;
+    }
+
     function downloadImage() {
         if (baseImage && overlayImage) {
             let canvas = document.getElementById('canvas');
@@ -144,20 +154,8 @@
             ctx.drawImage(overlayImage, offsetX, offsetY, overlayImage.width, overlayImage.height);
 
             let dataURL = canvas.toDataURL('image/png');
-            fetch('/saveimage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ data: dataURL })
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+            downloadURI(dataURL, "santa-hat.png");
+            
         } else {
             alert("please select an option and try again!");
         }
