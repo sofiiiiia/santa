@@ -132,6 +132,16 @@
     }
 }
 
+    function downloadURI(uri, name) {
+        var link = document.createElement("a");
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        delete link;
+    }
+
     function downloadImage() {
         if (baseImage && overlayImage) {
             let canvas = document.getElementById('canvas');
@@ -144,20 +154,8 @@
             ctx.drawImage(overlayImage, offsetX, offsetY, overlayImage.width, overlayImage.height);
 
             let dataURL = canvas.toDataURL('image/png');
-            fetch('/saveimage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ data: dataURL })
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+            downloadURI(dataURL, "santa-hat.png");
+            
         } else {
             alert("please select an option and try again!");
         }
