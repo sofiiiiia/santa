@@ -21,7 +21,7 @@
     <div class="overlay-buttons" id="overlay-buttons" style="display:none;">
         <button id="overlay1-btn" onclick="setOverlay('/overlay1.png')">realistic</button>
         <button id="overlay2-btn" onclick="setOverlay('/overlay2.png')">cartoon</button>
-        <input type="range" id="resize-slider" min="0.5" max="2" step="0.1" value="1" style="display:none;" onchange="resizeOverlay()">
+        <input type="range" id="resize-slider" min="0.5" max="2" step="0.1" value="1" style="display:none;" oninput="resizeOverlay()">
     </div>
 
     <button id="download-btn" style="display:none;" onclick="downloadImage()">Download Image</button>
