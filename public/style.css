@@ -40,7 +40,7 @@ button {
 }
 
 button:hover {
-    background-color: darken(var(--christmas-red), 10%);
+    background-color: #a71b03;
 }
 
 #base-image-display {
