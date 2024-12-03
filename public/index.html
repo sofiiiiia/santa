@@ -73,23 +73,6 @@
         };
     }
 
-
-    function setOverlay(overlaySrc) {
-        overlayImage = new Image();
-        overlayImage.src = overlaySrc;
-        overlayImage.id = "overlay-image";
-        overlayImage.onload = function() {
-            let existingOverlay = document.getElementById('overlay-image');
-            if (existingOverlay) {
-                document.getElementById('base-image-display').removeChild(existingOverlay);
-            }
-            document.getElementById('base-image-display').appendChild(overlayImage);
-            overlayImage.style.display = 'block';
-            initDragElement(overlayImage);
-            document.getElementById('resize-slider').style.display = 'inline-block';
-        };
-    }
-
     function initDragElement(element) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
         element.onmousedown = dragMouseDown;
@@ -115,22 +98,22 @@
 
         function closeDragElement() {
             // Capture the final position when the mouse button is released
-            offsetX = parseInt(element.style.left, 10);
-            offsetY = parseInt(element.style.top, 10);
+            offsetX = parseInt(element.style.left, 10) || 0;
+            offsetY = parseInt(element.style.top, 10) || 0;
             document.onmouseup = null;
             document.onmousemove = null;
         }
     }
 
     function resizeOverlay() {
-    let sliderValue = document.getElementById('resize-slider').value;
-    if (overlayImage) {
-        // set the transform scale based on the slider's value
-        overlayImage.style.transform = 'scale(' + sliderValue + ')';
-        // ensures that the transform origin is in the center.
-        overlayImage.style.transformOrigin = 'center';
+        let sliderValue = document.getElementById('resize-slider').value;
+        if (overlayImage) {
+            // set the transform scale based on the slider's value
+            overlayImage.style.transform = 'scale(' + sliderValue + ')';
+            // ensures that the transform origin is in the center.
+            overlayImage.style.transformOrigin = 'center';
+        }
     }
-}
 
     function downloadURI(uri, name) {
         var link = document.createElement("a");
@@ -150,12 +133,16 @@
             canvas.height = baseImage.height;
             ctx.drawImage(baseImage, 0, 0, baseImage.width, baseImage.height);
 
-            // Use the offset values captured during drag to set the position. DO NOT AMEND otherwise downloadable images will come out slightly off
-            ctx.drawImage(overlayImage, offsetX, offsetY, overlayImage.width, overlayImage.height);
+            // Get the current scale value from the slider
+            let sliderValue = document.getElementById('resize-slider').value;
+
+            // Apply the scale to the overlay before drawing it
+            let overlayWidth = overlayImage.width * sliderValue;
+            let overlayHeight = overlayImage.height * sliderValue;
+            ctx.drawImage(overlayImage, offsetX, offsetY, overlayWidth, overlayHeight);
 
             let dataURL = canvas.toDataURL('image/png');
             downloadURI(dataURL, "santa-hat.png");
-            
         } else {
             alert("please select an option and try again!");
         }
